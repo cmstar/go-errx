@@ -10,7 +10,7 @@ type StackfulError interface {
 	Stack() string
 }
 
-// ErrorCause 用于封装一个 error ，它支持 errors.Unwrap() 。
+// ErrorCause 用于封装一个 error ，表示引起另一个错误的错误，它支持 errors.Unwrap() 。
 type ErrorCause struct {
 	Err error
 }
