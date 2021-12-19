@@ -22,7 +22,7 @@ func Example_errorChain() {
 	// from A: from B: the original error
 	// --- goroutine 1 [running]:
 	// go-errx.GetErrorStack()
-	// go-errx.Wrap(...)
+	// go-errx.Wrap()
 	// go-errx.A()
 	// go-errx.Example_errorChain()
 	// main.main()
@@ -30,7 +30,7 @@ func Example_errorChain() {
 	// from B: the original error
 	// --- goroutine 1 [running]:
 	// go-errx.GetErrorStack()
-	// go-errx.Wrap(...)
+	// go-errx.Wrap()
 	// go-errx.B()
 	// go-errx.A()
 	// go-errx.Example_errorChain()
@@ -40,11 +40,11 @@ func Example_errorChain() {
 }
 
 func A() error {
-	e := B()
+	e := B(0)
 	return Wrap("from A", e)
 }
 
-func B() error {
+func B(int) error {
 	e := Source()
 	return Wrap("from B", e)
 }
@@ -60,7 +60,7 @@ func simplify(stack string) string {
 		--- goroutine 1 [running]:
 		github.com/cmstar/go-errx.GetErrorStack()
 			/path/go-errx/stackful.go:57 +0x7a
-		github.com/cmstar/go-errx.Wrap(...)
+		github.com/cmstar/go-errx.Wrap({0x691a49, 0x6}, {0x6dc980, 0xc000097dd0})
 			/path/go-errx/errx.go:43
 		github.com/cmstar/go-errx.A()
 			/path/go-errx/example_test.go:66 +0x2c
@@ -75,7 +75,7 @@ func simplify(stack string) string {
 		main.main()
 			_testmain.go:53 +0x14b
 
-		过于冗长且不稳定，耦合物理路径难以断言输出，将其简化，仅保留下方法名称。
+		过于冗长且不稳定，耦合物理路径难以断言输出，将其简化，仅保留方法名称。
 	*/
 
 	isLineNum := func(v string) bool {
@@ -98,8 +98,12 @@ func simplify(stack string) string {
 		}
 
 		if isMethodCall(line) {
+			// 将 github.com/cmstar/go-errx.Wrap(...) 简化为 go-errx.Wrap() 。
 			idx := strings.LastIndex(line, "/")
-			line = line[idx+1:]
+			line = line[idx+1:] // -> go-errx.Wrap(...)
+
+			idx = strings.Index(line, "(")
+			line = line[:idx] + "()" // -> go-errx.Wrap()
 		}
 
 		b.WriteString(line)
