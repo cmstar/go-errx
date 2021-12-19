@@ -1,6 +1,6 @@
 # errx - 更精准的定位和跟踪错误
 
-[![GoDoc](https://pkg.go.dev/github.com/cmstar/go-errx?status.svg)](https://pkg.go.dev/github.com/cmstar/go-errx)
+[![GoDoc](https://pkg.go.dev/badge/github.com/cmstar/go-errx)](https://pkg.go.dev/github.com/cmstar/go-errx)
 [![codecov](https://codecov.io/gh/cmstar/go-errx/branch/master/graph/badge.svg)](https://codecov.io/gh/cmstar/go-errx)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://opensource.org/licenses/MIT)
 
@@ -42,8 +42,7 @@ Go 的 error 只是“不太特殊”的值而已（[Errors are values](https://
 
 当一个 `error` 在 `Wrap` 之后返回给其调用者，调用者再次使用 `Wrap` 并返回给更上层的调用者， error 就形成了一个链条。
 
-更详细的信息可参考 [GoDoc 示例](https://pkg.go.dev/github.com/cmstar/go-errx/#example-package-ErrorChain) 。
-
+更详细的信息可参考 [GoDoc 示例](https://pkg.go.dev/github.com/cmstar/go-errx#example-package-ErrorChain) 。
 
 ## BizError
 
@@ -55,3 +54,5 @@ Go 的 error 只是“不太特殊”的值而已（[Errors are values](https://
 - 包含 `Cause` ，即引起此错误的错误。
 
 `BizError.Error()` 返回值格式为： `(Code) Message` ，不包含 `Cause` 和 `Stack` 。
+
+`BizError` 的使用样例可参考 [GoDoc 示例](https://pkg.go.dev/github.com/cmstar/go-errx#example-BizError) 。
