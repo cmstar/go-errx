@@ -1,6 +1,7 @@
 # errx - 更精准的定位和跟踪错误
 
 [![GoDoc](https://pkg.go.dev/badge/github.com/cmstar/go-errx)](https://pkg.go.dev/github.com/cmstar/go-errx)
+[![Go](https://github.com/cmstar/go-errx/workflows/Go/badge.svg)](https://github.com/cmstar/go-errx/actions?query=workflow%3AGo)
 [![codecov](https://codecov.io/gh/cmstar/go-errx/branch/master/graph/badge.svg)](https://codecov.io/gh/cmstar/go-errx)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://opensource.org/licenses/MIT)
 
