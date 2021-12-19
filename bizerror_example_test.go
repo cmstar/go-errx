@@ -1,15 +1,17 @@
-package errx
+package errx_test
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/cmstar/go-errx"
 )
 
 func ExampleBizError() {
 	// 当前示例演示如何通过 BizError 对错误进行分类。
 
 	printErr := func(e error) {
-		biz, ok := e.(BizError)
+		biz, ok := e.(errx.BizError)
 		if ok {
 			switch biz.Code() {
 			case 1:
@@ -33,7 +35,7 @@ func ExampleBizError() {
 
 func GetError(biz bool, code int) error {
 	if biz {
-		return NewBizError(code, "hello", nil)
+		return errx.NewBizError(code, "hello", nil)
 	}
 	return errors.New("other error")
 }

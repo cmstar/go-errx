@@ -1,10 +1,12 @@
-package errx
+package errx_test
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/cmstar/go-errx"
 )
 
 func Example_errorChain() {
@@ -12,7 +14,7 @@ func Example_errorChain() {
 
 	// 调用顺序 A() -> B() -> Source() 。
 	err := A()
-	msg := Describe(err)
+	msg := errx.Describe(err)
 
 	// 简化一下输出。
 	msg = simplify(msg)
@@ -21,32 +23,32 @@ func Example_errorChain() {
 	// Output:
 	// from A: from B: the original error
 	// --- goroutine 1 [running]:
-	// go-errx.GetErrorStack()
-	// go-errx.Wrap()
-	// go-errx.A()
-	// go-errx.Example_errorChain()
-	// main.main()
+	// GetErrorStack()
+	// Wrap()
+	// A()
+	// Example_errorChain()
+	// main()
 	// ===
 	// from B: the original error
 	// --- goroutine 1 [running]:
-	// go-errx.GetErrorStack()
-	// go-errx.Wrap()
-	// go-errx.B()
-	// go-errx.A()
-	// go-errx.Example_errorChain()
-	// main.main()
+	// GetErrorStack()
+	// Wrap()
+	// B()
+	// A()
+	// Example_errorChain()
+	// main()
 	// ===
 	// the original error
 }
 
 func A() error {
 	e := B(0)
-	return Wrap("from A", e)
+	return errx.Wrap("from A", e)
 }
 
 func B(int) error {
 	e := Source()
-	return Wrap("from B", e)
+	return errx.Wrap("from B", e)
 }
 
 func Source() error {
@@ -98,12 +100,13 @@ func simplify(stack string) string {
 		}
 
 		if isMethodCall(line) {
-			// 将 github.com/cmstar/go-errx.Wrap(...) 简化为 go-errx.Wrap() 。
+			// 将 github.com/cmstar/go-errx.Wrap(...) 简化为 Wrap() 。
 			idx := strings.LastIndex(line, "/")
 			line = line[idx+1:] // -> go-errx.Wrap(...)
-
+			idx = strings.Index(line, ".")
+			line = line[idx+1:] // -> Wrap(...)
 			idx = strings.Index(line, "(")
-			line = line[:idx] + "()" // -> go-errx.Wrap()
+			line = line[:idx] + "()" // -> Wrap()
 		}
 
 		b.WriteString(line)
