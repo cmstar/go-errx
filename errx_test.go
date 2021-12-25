@@ -32,28 +32,28 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 			name:      "only-stack",
 			args:      args{"", nil},
 			wantError: "",
-			wantStack: []string{`\.Wrap\(`, `testing.go`},
+			wantStack: []string{`errx_test\.go`, `testing\.go`},
 		},
 
 		{
 			name:      "no-prefix",
 			args:      args{"", errors.New("cause")},
 			wantError: "cause",
-			wantStack: []string{`\.Wrap\(`, `testing.go`},
+			wantStack: []string{`errx_test\.go`, `testing\.go`},
 		},
 
 		{
 			name:      "no-cause",
 			args:      args{"pre", nil},
 			wantError: "pre",
-			wantStack: []string{`\.Wrap\(`, `testing.go`},
+			wantStack: []string{`errx_test\.go`, `testing\.go`},
 		},
 
 		{
 			name:      "nested-stack",
 			args:      args{"pre1", Wrap("pre2", errors.New("e"))},
 			wantError: "pre1: pre2: e",
-			wantStack: []string{`\.Wrap\(`, `testing.go`},
+			wantStack: []string{`errx_test\.go`, `testing\.go`},
 		},
 	}
 	for _, tt := range tests {
@@ -116,7 +116,7 @@ func TestDescribe(t *testing.T) {
 			"unwrapable",
 			fmt.Errorf("pre1: %w", fmt.Errorf("pre2: %w", errors.New("inner"))),
 			[]string{
-				`^pre1: pre2: inner\n===\npre2: inner\n===\ninner$`,
+				`^pre1: pre2: inner\n=== pre2: inner\n=== inner$`,
 			},
 		},
 
@@ -124,9 +124,9 @@ func TestDescribe(t *testing.T) {
 			"stackful",
 			Wrap("pre1", Wrap("pre2", errors.New("gg"))),
 			[]string{
-				`^pre1: pre2: gg\n--- goroutine`,
-				`===\npre2: gg\n--- goroutine`,
-				`===\ngg`,
+				`^pre1: pre2: gg\n--- \[.+errx_test\.go:\d+\]`,
+				`=== pre2: gg\n--- \[.+errx_test\.go:\d+\]`,
+				`=== gg`,
 			},
 		},
 	}

@@ -31,7 +31,7 @@ Go 的 error 只是“不太特殊”的值而已（[Errors are values](https://
 - Cause：记录引起错误的错误，类似 Java 的 `Throwable.getCause()` 或 .net 的 `Exception.InnerException` 。
 - Stack：记录创建错误（即调用 Wrap 方法）时的方法调用栈，类似 Java 的 `Exception.printStackTrace()` 或 .net 的 `Exception.StackTrace` 。
 
-> 调用栈信息使用标准库的 `runtime.Stack` 方法获取，有一定的性能开销。
+> 调用栈信息使用标准库的 `runtime.CallersFrames` 方法获取，有一定的性能开销。
 
 ### Describe 方法
 

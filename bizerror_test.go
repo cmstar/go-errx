@@ -17,7 +17,7 @@ func TestNewBizError(t *testing.T) {
 	a.Equal("(123) msg", got.Error())
 
 	// 调用栈不好判断，用正则匹配。堆栈有换行，需给定 s flag 。
-	a.Regexp(`(?s)goroutine.+testing\.go`, got.Stack())
+	a.Regexp(`(?s)bizerror_test\.go`, got.Stack())
 }
 
 func TestNewBizErrorWithoutStack(t *testing.T) {

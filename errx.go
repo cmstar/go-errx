@@ -31,7 +31,6 @@ func (w *ErrorWrapper) Error() string {
 }
 
 // Wrap 封装给定的 error ，返回 ErrorWrapper 。
-// 调用栈信息使用 runtime.Stack(buf, false) 获取，会包含 Wrap 方法自身。
 // 错误信息的格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
 //
 // 得到的 StackfulError.Stack() 有一个固定的开头“--- ”，末尾会有一个空行。格式为：
@@ -40,7 +39,7 @@ func (w *ErrorWrapper) Error() string {
 func Wrap(message string, cause error) *ErrorWrapper {
 	return &ErrorWrapper{
 		ErrorCause: ErrorCause{cause},
-		ErrorStack: GetErrorStack(),
+		ErrorStack: GetErrorStack(3), // 调用栈不包括当前函数。
 		msg:        message,
 	}
 }
@@ -64,11 +63,9 @@ func WrapWithoutStack(message string, cause error) *ErrorWrapper {
 // 输出格式为：
 //   err.Error()
 //   --- err.Stack()
-//   ===
-//   Unwrap(err).Error()
+//   === Unwrap(err).Error()
 //   --- Unwrap(err).Stack()
-//   ===
-//   Unwrap(Unwrap(err)).Error()
+//   === Unwrap(Unwrap(err)).Error()
 //   --- Unwrap(Unwrap(err)).Stack()
 //   ...
 //
@@ -85,13 +82,13 @@ func Describe(err error) string {
 			if !endsWithStack {
 				msg.WriteByte('\n')
 			}
-			msg.WriteString("===\n")
+			msg.WriteString("=== ")
 		}
 		msg.WriteString(err.Error())
 
 		var s StackfulError
 		if s, endsWithStack = err.(StackfulError); endsWithStack {
-			msg.WriteByte('\n')
+			msg.WriteString("\n--- ")
 			msg.WriteString(s.Stack())
 		}
 

@@ -22,23 +22,13 @@ func Example_errorChain() {
 
 	// Output:
 	// from A: from B: the original error
-	// --- goroutine 1 [running]:
-	// GetErrorStack()
-	// Wrap()
-	// A()
-	// Example_errorChain()
-	// main()
-	// ===
-	// from B: the original error
-	// --- goroutine 1 [running]:
-	// GetErrorStack()
-	// Wrap()
-	// B()
-	// A()
-	// Example_errorChain()
-	// main()
-	// ===
-	// the original error
+	// --- go-errx_test.A
+	// go-errx_test.Example_errorChain
+	// === from B: the original error
+	// --- go-errx_test.B
+	// go-errx_test.A
+	// go-errx_test.Example_errorChain
+	// === the original error
 }
 
 func A() error {
@@ -58,55 +48,30 @@ func Source() error {
 func simplify(stack string) string {
 	/*
 		完整的信息类似：
-		from A: from B: the original error
-		--- goroutine 1 [running]:
-		github.com/cmstar/go-errx.GetErrorStack()
-			/path/go-errx/stackful.go:57 +0x7a
-		github.com/cmstar/go-errx.Wrap({0x691a49, 0x6}, {0x6dc980, 0xc000097dd0})
-			/path/go-errx/errx.go:43
-		github.com/cmstar/go-errx.A()
-			/path/go-errx/example_test.go:66 +0x2c
-		github.com/cmstar/go-errx.Example()
-			/path/go-errx/example_test.go:11 +0x19
-		testing.runExample({{0x5b0039, 0x7}, 0x5c3f38, {0x5be5ed, 0x143}, 0x0})
-			/gopath/src/testing/run_example.go:64 +0x28d
-		testing.runExamples(0xc0000c3e70, {0x7092e0, 0x1, 0x5})
-			/gopath/src/testing/example.go:44 +0x18e
-		testing.(*M).Run(0xc0000ce100)
-			/gopath/src/testing/testing.go:1505 +0x587
-		main.main()
-			_testmain.go:53 +0x14b
+		  from A: from B: the original error
+		  --- [/home/my/go-errx/example_test.go:42] go-errx_test.A
+		  [/home/my/go-errx/example_test.go:16] go-errx_test.Example_errorChain
+		  [/path/testing/run_example.go:64] testing.runExample
+		  [/path/testing/example.go:44] testing.runExamples
+		  [/path/testing/testing.go:1505] testing.(*M).Run
+		  [_testmain.go:57] main.main
 
-		过于冗长且不稳定，耦合物理路径难以断言输出，将其简化，仅保留方法名称。
+		过于冗长，耦合物理路径难以断言输出，将其简化，仅留下方法名，并去掉非本地代码的部分。
 	*/
-
-	isLineNum := func(v string) bool {
-		return strings.Contains(v, ".go")
-	}
-	isMethodCall := func(v string) bool {
-		return strings.Contains(v, ")")
-	}
-	isTestingCall := func(v string) bool {
-		// testing.(*M).Run(0xc0000ce100)
-		return strings.HasPrefix(v, "testing")
-	}
-
 	s := bufio.NewScanner(strings.NewReader(stack))
 	b := new(strings.Builder)
 	for s.Scan() {
 		line := s.Text()
-		if isLineNum(line) || isTestingCall(line) {
+		if strings.Contains(line, "testing.") || strings.Contains(line, "main") {
 			continue
 		}
 
-		if isMethodCall(line) {
-			// 将 github.com/cmstar/go-errx.Wrap(...) 简化为 Wrap() 。
-			idx := strings.LastIndex(line, "/")
-			line = line[idx+1:] // -> go-errx.Wrap(...)
-			idx = strings.Index(line, ".")
-			line = line[idx+1:] // -> Wrap(...)
-			idx = strings.Index(line, "(")
-			line = line[:idx] + "()" // -> Wrap()
+		idx := strings.Index(line, "[")
+		if idx >= 0 {
+			idxSlash := strings.LastIndex(line, " ")
+			if idxSlash >= 0 {
+				line = line[:idx] + line[idxSlash+1:]
+			}
 		}
 
 		b.WriteString(line)

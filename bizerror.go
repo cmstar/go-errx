@@ -56,13 +56,13 @@ func (e *bizErr) Error() string {
 
 // NewBizError 创建一个 BizError ，给定错误码、错误信息和引起此错误的错误。
 // cause 指定引发此错误的错误，可以为 nil 。
-// 此方法创建的 BizError 会包含方法调用栈信息，通过 runtime.Stack(buf, false) 获取。
+// 此方法创建的 BizError 会包含方法调用栈信息。
 func NewBizError(code int, message string, cause error) BizError {
 	bizErr := &bizErr{
 		code:       code,
 		message:    message,
 		ErrorCause: ErrorCause{cause},
-		ErrorStack: GetErrorStack(),
+		ErrorStack: GetErrorStack(3), // 调用栈不包括当前函数。
 	}
 	return bizErr
 }
