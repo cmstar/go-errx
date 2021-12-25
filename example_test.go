@@ -31,16 +31,19 @@ func Example_errorChain() {
 	// === the original error
 }
 
+//go:noinline
 func A() error {
 	e := B(0)
 	return errx.Wrap("from A", e)
 }
 
+//go:noinline
 func B(int) error {
 	e := Source()
 	return errx.Wrap("from B", e)
 }
 
+//go:noinline
 func Source() error {
 	return errors.New("the original error")
 }
