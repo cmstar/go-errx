@@ -140,3 +140,22 @@ func TestDescribe(t *testing.T) {
 		})
 	}
 }
+
+func TestErrorWrapper_Format(t *testing.T) {
+	w := Wrap("pre1", Wrap("pre2", errors.New(`"gg"`)))
+
+	got := fmt.Sprintf("%s", w)
+	assert.Equal(t, `pre1: pre2: "gg"`, got)
+
+	got = fmt.Sprintf("%q", w)
+	assert.Equal(t, `"pre1: pre2: \"gg\""`, got)
+
+	got = fmt.Sprintf("%v", w)
+	assert.Equal(t, `pre1: pre2: "gg"`, got)
+
+	got = fmt.Sprintf("%+v", w)
+	assert.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
+
+	got = fmt.Sprintf("%d", w)
+	assert.Equal(t, `BADFORMAT:pre1: pre2: "gg"`, got)
+}

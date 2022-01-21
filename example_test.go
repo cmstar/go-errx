@@ -14,6 +14,9 @@ func Example_errorChain() {
 
 	// 调用顺序 A() -> B() -> Source() 。
 	err := A()
+
+	// 获取带有调用栈的错误描述。
+	// 也可以通过 fmt.Sprintf("%+v", err) 得到一样的结果。
 	msg := errx.Describe(err)
 
 	// 简化一下输出。

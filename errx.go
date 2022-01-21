@@ -3,6 +3,9 @@ package errx
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +17,7 @@ type ErrorWrapper struct {
 }
 
 var _ StackfulError = (*ErrorWrapper)(nil)
+var _ fmt.Formatter = (*ErrorWrapper)(nil)
 
 // Error 返回错误的描述。
 // 格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
@@ -28,6 +32,30 @@ func (w *ErrorWrapper) Error() string {
 	}
 
 	return w.msg + ": " + c.Error()
+}
+
+// Format 实现 fmt.Formatter.Formats() 。
+// 支持 %s/%q/%v/%+v ， %+v 输出 Describe() 的结果。
+func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
+	var out string
+
+	switch verb {
+	case 's':
+		out = w.Error()
+	case 'q':
+		out = strconv.Quote(w.Error())
+	case 'v':
+		if f.Flag('+') {
+			out = Describe(w)
+		} else {
+			out = w.Error()
+		}
+	default:
+		// 其他不支持的格式，输出： BADFORMAT:error
+		out = "BADFORMAT:" + w.Error()
+	}
+
+	io.WriteString(f, out)
 }
 
 // Wrap 封装给定的 error ，返回 ErrorWrapper 。
