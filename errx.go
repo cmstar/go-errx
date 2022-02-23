@@ -81,6 +81,31 @@ func WrapWithoutStack(message string, cause error) StackfulError {
 	}
 }
 
+// PreserveRecover 用于封装从 panic 中 recover 的数据，返回 StackfulError 。
+// 此方法的调用应放在 defer 过程里。
+func PreserveRecover(message string, recovered interface{}) StackfulError {
+	if recovered == nil {
+		return nil
+	}
+
+	var cause error
+	switch e := recovered.(type) {
+	case error:
+		cause = e
+	case string:
+		cause = fmt.Errorf(e)
+	default:
+		// panic 的不是 error 和字符串也应该是个能转成字符串的东西。
+		cause = fmt.Errorf("%v", e)
+	}
+
+	return &ErrorWrapper{
+		ErrorCause: ErrorCause{cause},
+		ErrorStack: GetErrorStack(4), // 忽略当前函数、 panic 调用和 defer 的函数。
+		msg:        message,
+	}
+}
+
 // Describe 返回一个字符串描述给定的错误。如果给定 nil ，返回空字符串。
 //
 // 递归使用 errors.Unwrap() 获取内部错误，并追加在描述信息上。如果错误是 StackfulError ，则描述携带调用栈信息。

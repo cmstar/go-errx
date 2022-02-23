@@ -159,3 +159,52 @@ func TestErrorWrapper_Format(t *testing.T) {
 	got = fmt.Sprintf("%d", w)
 	assert.Equal(t, `BADFORMAT:pre1: pre2: "gg"`, got)
 }
+
+func TestPreserveRecover(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		err := func() (err error) {
+			defer func() {
+				err = PreserveRecover("prefix", recover())
+			}()
+			return
+		}()
+
+		assert.Equal(t, "", Describe(err))
+	})
+
+	t.Run("stackful", func(t *testing.T) {
+		err := func() (err error) {
+			defer func() {
+				err = PreserveRecover("prefix", recover())
+			}()
+
+			panic(fmt.Errorf("msg"))
+		}()
+
+		assert.Regexp(t, `^prefix: msg\n--- \[`, Describe(err))
+	})
+
+	t.Run("string", func(t *testing.T) {
+		err := func() (err error) {
+			defer func() {
+				err = PreserveRecover("prefix", recover())
+			}()
+
+			panic("gg")
+		}()
+
+		assert.Regexp(t, `^prefix: gg\n--- \[`, Describe(err))
+	})
+
+	t.Run("other", func(t *testing.T) {
+		err := func() (err error) {
+			defer func() {
+				err = PreserveRecover("prefix", recover())
+			}()
+
+			panic(99)
+		}()
+
+		assert.Regexp(t, `^prefix: 99\n--- \[`, Describe(err))
+	})
+}

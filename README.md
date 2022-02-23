@@ -45,6 +45,41 @@ Go 的 error 只是“不太特殊”的值而已（[Errors are values](https://
 
 更详细的信息可参考 [GoDoc 示例](https://pkg.go.dev/github.com/cmstar/go-errx#example-package-ErrorChain) 。
 
+### PreserveRecover 方法
+
+我们可能需要利用应对 `panic` ，并将相关的错误信息保留下来，代码如下：
+
+```go
+func do() (err error) {
+    defer func() {
+        r := recover()
+        if r == nil {
+            return
+        }
+
+        // 留存错误，丢失了调用栈信息。
+        err = fmt.Errorf("do: %v", r)
+    }()
+
+    somethingThatMayPanic()
+    return nil
+}
+```
+
+利用 `PreserveRecover` 方法，这段代码可以简化成这样，当 `recover()` 的结果不是 `nil` 时，它会被 `Wrap()` 在一个错误里：
+
+```go
+func do() (err error) {
+    defer func() {
+        // 留存错误，并保留调用栈信息。
+        err = errx.PreserveRecover("do", recover())
+    }()
+
+    somethingThatMayPanic()
+    return nil
+}
+```
+
 ## BizError
 
 在业务交互中，我们可能需要根据错误的类别进行不同的处理，原始的 `error` 等同于一个字符串，难以判断和分类。 errx 包定义了 `BizError` ，以便对错误进行分类。它是一个特殊的 `error` ，可通过 `errx.NewBizError` 方法创建。
