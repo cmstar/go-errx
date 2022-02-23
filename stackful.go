@@ -10,6 +10,9 @@ import (
 type StackfulError interface {
 	error
 
+	// Cause 返回引起当前错误的错误。
+	Cause() error
+
 	// Stack 返回调用栈信息。若未记录调用栈，可返回空值。
 	Stack() string
 }

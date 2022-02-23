@@ -58,13 +58,13 @@ func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 	io.WriteString(f, out)
 }
 
-// Wrap 封装给定的 error ，返回 ErrorWrapper 。
+// Wrap 封装给定的 error ，返回 StackfulError 。
 // 错误信息的格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
 //
 // 得到的 StackfulError.Stack() 有一个固定的开头“--- ”，末尾会有一个空行。格式为：
 //   --- stack text
 //
-func Wrap(message string, cause error) *ErrorWrapper {
+func Wrap(message string, cause error) StackfulError {
 	return &ErrorWrapper{
 		ErrorCause: ErrorCause{cause},
 		ErrorStack: GetErrorStack(3), // 调用栈不包括当前函数。
@@ -74,7 +74,7 @@ func Wrap(message string, cause error) *ErrorWrapper {
 
 // WrapWithoutStack 封装给定的 error 。和 Wrap() 类似，但不带有调用栈信息。
 // 错误信息的格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
-func WrapWithoutStack(message string, cause error) *ErrorWrapper {
+func WrapWithoutStack(message string, cause error) StackfulError {
 	return &ErrorWrapper{
 		ErrorCause: ErrorCause{cause},
 		msg:        message,

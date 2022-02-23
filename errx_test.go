@@ -62,9 +62,9 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 			for _, withStack := range []bool{true, false} {
 				var got *ErrorWrapper
 				if withStack {
-					got = Wrap(tt.args.msg, tt.args.cause)
+					got = Wrap(tt.args.msg, tt.args.cause).(*ErrorWrapper)
 				} else {
-					got = WrapWithoutStack(tt.args.msg, tt.args.cause)
+					got = WrapWithoutStack(tt.args.msg, tt.args.cause).(*ErrorWrapper)
 				}
 
 				a := assert.New(t)
