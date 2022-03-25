@@ -7,6 +7,7 @@ import (
 
 // BizError 是一个 error 。增加了错误码等属性，可更精确的表示一个预定义的错误。
 // BizError 实现 StackfulError ，可以携带调用栈信息。
+// 其 Error() 方法不包含调用栈信息和内部错误的信息，目的是隐藏内部细节，仅用于输出业务信息。
 type BizError interface {
 	StackfulError
 

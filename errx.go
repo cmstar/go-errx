@@ -134,13 +134,15 @@ func PreserveRecover(message string, recovered interface{}) StackfulError {
 // 可通过此方法获取完整的错误链信息。
 //
 // 输出格式为：
-//   err.Error()
-//   --- err.Stack()
-//   === Unwrap(err).Error()
-//   --- Unwrap(err).Stack()
-//   === Unwrap(Unwrap(err)).Error()
-//   --- Unwrap(Unwrap(err)).Stack()
-//   ...
+//   最外层错误描述
+//   --- 最外层错误的调用栈信息
+//   === 第1层内部错误的描述
+//   --- 第1层内部错误的调用栈信息
+//   === 第2层内部错误的描述
+//   --- 第2层内部错误的调用栈信息
+//   ...（逐层展示）
+//   === 最内层错误的描述
+//   --- 最内层错误的描述的调用栈信息
 //
 func Describe(err error) string {
 	if err == nil {
