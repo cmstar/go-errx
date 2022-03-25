@@ -7,8 +7,15 @@ import (
 )
 
 // StackfulError 是一个包含调用栈信息的 error 。
+//
+// 通常， Error() 方法返回带有调用栈信息的错误描述。
+// 可通过 ErrorWithoutStack() 获取没有调用栈的错误描述。
+//
 type StackfulError interface {
 	error
+
+	// ErrorWithoutStack 返回错误的描述信息，但不包含 Stack 。
+	ErrorWithoutStack() string
 
 	// Cause 返回引起当前错误的错误。
 	Cause() error

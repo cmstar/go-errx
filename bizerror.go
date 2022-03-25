@@ -43,6 +43,12 @@ func (e *bizErr) Message() string {
 	return e.message
 }
 
+// ErrorWithoutStack 实现 StackfulError.ErrorWithoutStack() 。
+func (e *bizErr) ErrorWithoutStack() string {
+	// BizError.Error() 本来就没调用栈，直接用。
+	return e.Error()
+}
+
 // Error 实现 error 接口，返回 BizError 的数据，格式为： (Code) Message 。
 func (e *bizErr) Error() string {
 	var b strings.Builder

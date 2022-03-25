@@ -55,6 +55,13 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 			wantError: "pre1: pre2: e",
 			wantStack: []string{`errx_test\.go`, `testing\.go`},
 		},
+
+		{
+			name:      "nested-biz",
+			args:      args{"pre1", NewBizError(100, "biz", errors.New("e"))},
+			wantError: "pre1: (100) biz",
+			wantStack: []string{`errx_test\.go`, `testing\.go`},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,7 +85,7 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 					a.Equal(tt.args.cause.Error(), got.Cause().Error(), "Cause().Error()")
 				}
 
-				a.Equal(tt.wantError, got.Error(), "Error()")
+				a.Equal(tt.wantError, got.ErrorWithoutStack(), "ErrorWithoutStack()")
 
 				if withStack {
 					for _, v := range tt.wantStack {
@@ -95,50 +102,96 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 }
 
 func TestDescribe(t *testing.T) {
-	tests := []struct {
-		name     string
-		e        error
-		patterns []string
-	}{
-		{
-			"nil",
-			nil,
-			[]string{"^$"},
-		},
+	check := func(t *testing.T, e error, patterns []string) {
+		res := Describe(e)
 
-		{
-			"nostack",
-			errors.New("gg"),
-			[]string{"gg"},
-		},
+		for _, p := range patterns {
+			assert.Regexp(t, p, res)
+		}
+	}
 
-		{
-			"unwrapable",
+	t.Run("nil", func(t *testing.T) {
+		check(t, nil, []string{"^$"})
+	})
+
+	t.Run("nostack", func(t *testing.T) {
+		check(t, errors.New("gg"), []string{"gg"})
+	})
+
+	t.Run("unwrapable", func(t *testing.T) {
+		check(t,
 			fmt.Errorf("pre1: %w", fmt.Errorf("pre2: %w", errors.New("inner"))),
 			[]string{
 				`^pre1: pre2: inner\n=== pre2: inner\n=== inner$`,
-			},
-		},
+			})
+	})
 
-		{
-			"stackful",
+	t.Run("stackful", func(t *testing.T) {
+		check(t,
 			Wrap("pre1", Wrap("pre2", errors.New("gg"))),
 			[]string{
 				`^pre1: pre2: gg\n--- \[.+errx_test\.go:\d+\]`,
 				`=== pre2: gg\n--- \[.+errx_test\.go:\d+\]`,
 				`=== gg`,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			res := Describe(tt.e)
+			})
+	})
 
-			for _, p := range tt.patterns {
-				assert.Regexp(t, p, res)
-			}
-		})
-	}
+	t.Run("wrap-biz", func(t *testing.T) {
+		check(t,
+			Wrap("pre1", NewBizError(100, "biz", errors.New("gg"))),
+			[]string{
+				`^pre1: \(100\) biz\n--- \[.+errx_test\.go:\d+\]`,
+				`=== \(100\) biz\n--- \[.+errx_test\.go:\d+\]`,
+				`=== gg`,
+			})
+	})
+
+	t.Run("biz-wrap", func(t *testing.T) {
+		check(t,
+			NewBizError(100, "biz", Wrap("inner", errors.New("gg"))),
+			[]string{
+				`^\(100\) biz\n--- \[.+errx_test\.go:\d+\]`,
+				`=== inner: gg\n--- \[.+errx_test\.go:\d+\]`,
+				`=== gg`,
+			})
+	})
+}
+
+func TestErrorWrapper_ErrorWithoutStack(t *testing.T) {
+	t.Run("p1", func(t *testing.T) {
+		w := Wrap("p1", errors.New(``))
+		assert.Equal(t, `p1: `, w.ErrorWithoutStack())
+	})
+
+	t.Run("p1-e", func(t *testing.T) {
+		w := Wrap("p1", nil)
+		assert.Equal(t, `p1`, w.ErrorWithoutStack())
+	})
+
+	t.Run("p1-e", func(t *testing.T) {
+		w := Wrap("p1", errors.New(`e`))
+		assert.Equal(t, `p1: e`, w.ErrorWithoutStack())
+	})
+
+	t.Run("p1-p2-e", func(t *testing.T) {
+		w := Wrap("p1", Wrap("p2", errors.New(`e`)))
+		assert.Equal(t, `p1: p2: e`, w.ErrorWithoutStack())
+	})
+
+	t.Run("e", func(t *testing.T) {
+		w := Wrap("", errors.New(`e`))
+		assert.Equal(t, `e`, w.ErrorWithoutStack())
+	})
+
+	t.Run("p2-e", func(t *testing.T) {
+		w := Wrap("", Wrap("p2", errors.New(`e`)))
+		assert.Equal(t, `p2: e`, w.ErrorWithoutStack())
+	})
+
+	t.Run("p1--e", func(t *testing.T) {
+		w := Wrap("p1", Wrap("", errors.New(`e`)))
+		assert.Equal(t, `p1: e`, w.ErrorWithoutStack())
+	})
 }
 
 func TestErrorWrapper_Format(t *testing.T) {

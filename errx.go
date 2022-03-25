@@ -19,40 +19,60 @@ type ErrorWrapper struct {
 var _ StackfulError = (*ErrorWrapper)(nil)
 var _ fmt.Formatter = (*ErrorWrapper)(nil)
 
-// Error 返回错误的描述。
-// 格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
+// Error 返回以 Describe() 的格式输出错误信息。
 func (w *ErrorWrapper) Error() string {
+	// Describe() 不会调用 BizError 之外的 StackfulError.Error() ，所以不会死循环。
+	return Describe(w)
+}
+
+// Message 返回错误的描述信息，但不包含 Stack 。
+//
+// 返回格式如下，当前实例的 message 为空时，前置的“message:”部分被省略。
+//  - 若 cause 为 nil，则仅返回当前实例的错误信息；
+//  - 若 cause 为 StackfulError， 则返回： message: cause.ErrorWithoutStack() ；
+//  - 若 cause 不是 StackfulError， 则返回： message: cause.Error() 。
+func (w *ErrorWrapper) ErrorWithoutStack() string {
 	c := w.Cause()
 	if c == nil {
 		return w.msg
 	}
 
-	if w.msg == "" {
-		return c.Error()
+	prefix := w.msg
+	if w.msg != "" {
+		prefix += ": "
 	}
 
-	return w.msg + ": " + c.Error()
+	se, ok := w.Cause().(StackfulError)
+	if ok {
+		return prefix + se.ErrorWithoutStack()
+	}
+	return prefix + c.Error()
 }
 
 // Format 实现 fmt.Formatter.Formats() 。
-// 支持 %s/%q/%v/%+v ， %+v 输出 Describe() 的结果。
+// 支持：
+//   %s  输出 ErrorWithoutStack()
+//   %q  输出 strconv.Quote(ErrorWithoutStack())
+//   %v  输出 ErrorWithoutStack()
+//   %+v 输出 Error()
+//
 func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 	var out string
 
 	switch verb {
 	case 's':
-		out = w.Error()
+		out = w.ErrorWithoutStack()
 	case 'q':
-		out = strconv.Quote(w.Error())
+		out = strconv.Quote(w.ErrorWithoutStack())
 	case 'v':
 		if f.Flag('+') {
-			out = Describe(w)
-		} else {
 			out = w.Error()
+		} else {
+			out = w.ErrorWithoutStack()
 		}
 	default:
-		// 其他不支持的格式，输出： BADFORMAT:error
-		out = "BADFORMAT:" + w.Error()
+		// 其他不支持的格式，输出： BADFORMAT:Message()
+		out = "BADFORMAT:" + w.ErrorWithoutStack()
 	}
 
 	io.WriteString(f, out)
@@ -128,24 +148,30 @@ func Describe(err error) string {
 	}
 
 	var msg strings.Builder
-	endsWithStack := false
-	for err != nil {
+	isStackful := false
+	for {
 		if msg.Len() > 0 {
 			// stack 末尾自带换行。如果之前不是 stack ，就要单独添加一个。
-			if !endsWithStack {
+			if !isStackful {
 				msg.WriteByte('\n')
 			}
 			msg.WriteString("=== ")
 		}
-		msg.WriteString(err.Error())
 
-		var s StackfulError
-		if s, endsWithStack = err.(StackfulError); endsWithStack {
+		switch e := err.(type) {
+		case StackfulError:
+			msg.WriteString(e.ErrorWithoutStack())
 			msg.WriteString("\n--- ")
-			msg.WriteString(s.Stack())
+			msg.WriteString(e.Stack())
+			isStackful = true
+		default:
+			msg.WriteString(e.Error())
 		}
 
 		err = errors.Unwrap(err)
+		if err == nil {
+			break
+		}
 	}
 
 	return msg.String()
