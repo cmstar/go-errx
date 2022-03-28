@@ -204,7 +204,7 @@ func TestErrorWrapper_Format(t *testing.T) {
 	assert.Equal(t, `"pre1: pre2: \"gg\""`, got)
 
 	got = fmt.Sprintf("%v", w)
-	assert.Equal(t, `pre1: pre2: "gg"`, got)
+	assert.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
 
 	got = fmt.Sprintf("%+v", w)
 	assert.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)

@@ -51,10 +51,10 @@ func (w *ErrorWrapper) ErrorWithoutStack() string {
 
 // Format 实现 fmt.Formatter.Formats() 。
 // 支持：
-//   %s  输出 ErrorWithoutStack()
-//   %q  输出 strconv.Quote(ErrorWithoutStack())
-//   %v  输出 ErrorWithoutStack()
-//   %+v 输出 Error()
+//   %s      输出 ErrorWithoutStack()
+//   %q      输出 strconv.Quote(ErrorWithoutStack())
+//   %v/%+v  输出 Error()
+//   other   输出 BADFORMAT: ErrorWithoutStack()
 //
 func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 	var out string
@@ -65,11 +65,7 @@ func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 	case 'q':
 		out = strconv.Quote(w.ErrorWithoutStack())
 	case 'v':
-		if f.Flag('+') {
-			out = w.Error()
-		} else {
-			out = w.ErrorWithoutStack()
-		}
+		out = w.Error()
 	default:
 		// 其他不支持的格式，输出： BADFORMAT:Message()
 		out = "BADFORMAT:" + w.ErrorWithoutStack()
