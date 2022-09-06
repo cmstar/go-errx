@@ -122,7 +122,7 @@ func TestDescribe(t *testing.T) {
 		check(t,
 			fmt.Errorf("pre1: %w", fmt.Errorf("pre2: %w", errors.New("inner"))),
 			[]string{
-				`^pre1: pre2: inner\n=== pre2: inner\n=== inner$`,
+				`^pre1: pre2: inner\n=== pre2: inner\n=== inner\n`,
 			})
 	})
 

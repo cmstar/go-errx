@@ -140,30 +140,37 @@ func PreserveRecover(message string, recovered interface{}) StackfulError {
 //	...（逐层展示）
 //	=== 最内层错误的描述
 //	--- 最内层错误的描述的调用栈信息
+//
+// 末尾总是一个空行。
 func Describe(err error) string {
 	if err == nil {
 		return ""
 	}
 
 	var msg strings.Builder
-	isStackful := false
 	for {
 		if msg.Len() > 0 {
-			// stack 末尾自带换行。如果之前不是 stack ，就要单独添加一个。
-			if !isStackful {
-				msg.WriteByte('\n')
-			}
 			msg.WriteString("=== ")
 		}
+
+		var buf string
 
 		switch e := err.(type) {
 		case StackfulError:
 			msg.WriteString(e.ErrorWithoutStack())
 			msg.WriteString("\n--- ")
-			msg.WriteString(e.Stack())
-			isStackful = true
+			buf = e.Stack()
+
 		default:
-			msg.WriteString(e.Error())
+			buf = e.Error()
+		}
+
+		if len(buf) > 0 {
+			msg.WriteString(buf)
+
+			if buf[len(buf)-1] != '\n' {
+				msg.WriteRune('\n')
+			}
 		}
 
 		err = errors.Unwrap(err)
