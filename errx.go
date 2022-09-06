@@ -28,9 +28,9 @@ func (w *ErrorWrapper) Error() string {
 // Message 返回错误的描述信息，但不包含 Stack 。
 //
 // 返回格式如下，当前实例的 message 为空时，前置的“message:”部分被省略。
-//  - 若 cause 为 nil，则仅返回当前实例的错误信息；
-//  - 若 cause 为 StackfulError， 则返回： message: cause.ErrorWithoutStack() ；
-//  - 若 cause 不是 StackfulError， 则返回： message: cause.Error() 。
+//   - 若 cause 为 nil，则仅返回当前实例的错误信息；
+//   - 若 cause 为 StackfulError， 则返回： message: cause.ErrorWithoutStack() ；
+//   - 若 cause 不是 StackfulError， 则返回： message: cause.Error() 。
 func (w *ErrorWrapper) ErrorWithoutStack() string {
 	c := w.Cause()
 	if c == nil {
@@ -51,11 +51,11 @@ func (w *ErrorWrapper) ErrorWithoutStack() string {
 
 // Format 实现 fmt.Formatter.Formats() 。
 // 支持：
-//   %s      输出 ErrorWithoutStack()
-//   %q      输出 strconv.Quote(ErrorWithoutStack())
-//   %v/%+v  输出 Error()
-//   other   输出 BADFORMAT: ErrorWithoutStack()
 //
+//	%s      输出 ErrorWithoutStack()
+//	%q      输出 strconv.Quote(ErrorWithoutStack())
+//	%v/%+v  输出 Error()
+//	other   输出 BADFORMAT: ErrorWithoutStack()
 func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 	var out string
 
@@ -78,8 +78,8 @@ func (w *ErrorWrapper) Format(f fmt.State, verb rune) {
 // 错误信息的格式为： message: cause.Error() 。若 cause 为 nil，则仅返回 message  。
 //
 // 得到的 StackfulError.Stack() 有一个固定的开头“--- ”，末尾会有一个空行。格式为：
-//   --- stack text
 //
+//	--- stack text
 func Wrap(message string, cause error) StackfulError {
 	return &ErrorWrapper{
 		ErrorCause: ErrorCause{cause},
@@ -130,16 +130,16 @@ func PreserveRecover(message string, recovered interface{}) StackfulError {
 // 可通过此方法获取完整的错误链信息。
 //
 // 输出格式为：
-//   最外层错误描述
-//   --- 最外层错误的调用栈信息
-//   === 第1层内部错误的描述
-//   --- 第1层内部错误的调用栈信息
-//   === 第2层内部错误的描述
-//   --- 第2层内部错误的调用栈信息
-//   ...（逐层展示）
-//   === 最内层错误的描述
-//   --- 最内层错误的描述的调用栈信息
 //
+//	最外层错误描述
+//	--- 最外层错误的调用栈信息
+//	=== 第1层内部错误的描述
+//	--- 第1层内部错误的调用栈信息
+//	=== 第2层内部错误的描述
+//	--- 第2层内部错误的调用栈信息
+//	...（逐层展示）
+//	=== 最内层错误的描述
+//	--- 最内层错误的描述的调用栈信息
 func Describe(err error) string {
 	if err == nil {
 		return ""

@@ -10,7 +10,6 @@ import (
 //
 // 通常， Error() 方法返回带有调用栈信息的错误描述。
 // 可通过 ErrorWithoutStack() 获取没有调用栈的错误描述。
-//
 type StackfulError interface {
 	error
 
@@ -57,10 +56,10 @@ func (f frame) shortName() string {
 
 // ErrorStack 用于存放调用栈信息，以便实现 StackfulError 。
 // 输出调用栈格式为（末尾有一个空行）：
-//   [file0:line] func0
-//   [file1:line] func1
-//   [file2:line] func2
 //
+//	[file0:line] func0
+//	[file1:line] func1
+//	[file2:line] func2
 type ErrorStack struct {
 	frames []frame
 }
