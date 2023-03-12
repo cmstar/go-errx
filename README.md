@@ -4,6 +4,8 @@
 [![Go](https://github.com/cmstar/go-errx/workflows/Go/badge.svg)](https://github.com/cmstar/go-errx/actions?query=workflow%3AGo)
 [![codecov](https://codecov.io/gh/cmstar/go-errx/branch/master/graph/badge.svg)](https://codecov.io/gh/cmstar/go-errx)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://opensource.org/licenses/MIT)
+[![GoVersion](https://img.shields.io/github/go-mod/go-version/cmstar/go-errx)](https://github.com/cmstar/go-errx/blob/main/go.mod)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cmstar/go-errx)](https://goreportcard.com/report/github.com/cmstar/go-errx)
 
 功能：
 - 封装引起错误的错误。
