@@ -181,3 +181,27 @@ func Describe(err error) string {
 
 	return msg.String()
 }
+
+// 执行给定的函数。
+// 若函数成功执行，返回 nil ；若函数 panic ，则通过 [PreserveRecover] 捕获并返回对应的错误。
+func Run(f func()) (err error) {
+	defer func() {
+		err = PreserveRecover("", recover())
+	}()
+
+	f()
+	return nil
+}
+
+// 执行带有一个 error 返回值的的函数。
+// 若函数成功执行，返回函数的返回值；若函数 panic ，则通过 [PreserveRecover] 捕获并返回对应的错误。
+func RunE(f func() error) (err error) {
+	defer func() {
+		if err == nil {
+			err = PreserveRecover("", recover())
+		}
+	}()
+
+	err = f()
+	return
+}

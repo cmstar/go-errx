@@ -261,3 +261,35 @@ func TestPreserveRecover(t *testing.T) {
 		require.Regexp(t, `^prefix: 99\n--- \[`, Describe(err))
 	})
 }
+
+func TestRun(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		err := Run(func() {})
+		require.Nil(t, err)
+	})
+
+	t.Run("panic", func(t *testing.T) {
+		err := Run(func() { panic("some error") })
+		require.NotNil(t, err)
+		require.Contains(t, err.Error(), "some error")
+	})
+}
+
+func TestRunE(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		err := RunE(func() error { return nil })
+		require.Nil(t, err)
+	})
+
+	t.Run("panic", func(t *testing.T) {
+		err := RunE(func() error { panic("some error") })
+		require.NotNil(t, err)
+		require.Contains(t, err.Error(), "some error")
+	})
+
+	t.Run("err", func(t *testing.T) {
+		err := RunE(func() error { return errors.New("some error") })
+		require.NotNil(t, err)
+		require.Contains(t, err.Error(), "some error")
+	})
+}
