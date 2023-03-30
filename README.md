@@ -53,6 +53,8 @@ Go 的 error 只是“不太特殊”的值而已（[Errors are values](https://
 
 > [go-webapi](https://github.com/cmstar/go-webapi#%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86) 框架使用 `BizError` 区分需要返回的业务错误和其他内部错误。
 
+## 方法
+
 ### Describe 方法
 
 `errx.Describe` 将 `errx.Wrap` 添加的信息抽取出来，形成一段完整的错误描述，它包含各层级错误的信息及调用栈。
@@ -111,4 +113,18 @@ func do() (err error) {
     somethingThatMayPanic()
     return nil
 }
+```
+
+### Run/RunE 方法
+
+用于执行一个可能会 panic 的方法，自动添加 `defer` 过程，并通过 `PreserveRecover` 方法捕获错误。
+
+```go
+func do() {
+    err := errx.Run(func() {
+        panic("oops!")
+    })
+    fmt.Println(err)
+}
+
 ```
