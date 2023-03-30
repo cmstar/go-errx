@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Wrap 和 WrapWithoutStack 极为相似，放在一起测。
@@ -74,7 +74,7 @@ func TestWrapAndWrapWithoutStack(t *testing.T) {
 					got = WrapWithoutStack(tt.args.msg, tt.args.cause).(*ErrorWrapper)
 				}
 
-				a := assert.New(t)
+				a := require.New(t)
 				a.NotNil(got)
 				a.Equal(got.ErrorCause.Err, got.Unwrap(), "ErrorCause.Unwrap()")
 				a.Equal(got.ErrorCause.Err, got.Cause(), "ErrorCause.Cause()")
@@ -106,7 +106,7 @@ func TestDescribe(t *testing.T) {
 		res := Describe(e)
 
 		for _, p := range patterns {
-			assert.Regexp(t, p, res)
+			require.Regexp(t, p, res)
 		}
 	}
 
@@ -160,37 +160,37 @@ func TestDescribe(t *testing.T) {
 func TestErrorWrapper_ErrorWithoutStack(t *testing.T) {
 	t.Run("p1", func(t *testing.T) {
 		w := Wrap("p1", errors.New(``))
-		assert.Equal(t, `p1: `, w.ErrorWithoutStack())
+		require.Equal(t, `p1: `, w.ErrorWithoutStack())
 	})
 
 	t.Run("p1-e", func(t *testing.T) {
 		w := Wrap("p1", nil)
-		assert.Equal(t, `p1`, w.ErrorWithoutStack())
+		require.Equal(t, `p1`, w.ErrorWithoutStack())
 	})
 
 	t.Run("p1-e", func(t *testing.T) {
 		w := Wrap("p1", errors.New(`e`))
-		assert.Equal(t, `p1: e`, w.ErrorWithoutStack())
+		require.Equal(t, `p1: e`, w.ErrorWithoutStack())
 	})
 
 	t.Run("p1-p2-e", func(t *testing.T) {
 		w := Wrap("p1", Wrap("p2", errors.New(`e`)))
-		assert.Equal(t, `p1: p2: e`, w.ErrorWithoutStack())
+		require.Equal(t, `p1: p2: e`, w.ErrorWithoutStack())
 	})
 
 	t.Run("e", func(t *testing.T) {
 		w := Wrap("", errors.New(`e`))
-		assert.Equal(t, `e`, w.ErrorWithoutStack())
+		require.Equal(t, `e`, w.ErrorWithoutStack())
 	})
 
 	t.Run("p2-e", func(t *testing.T) {
 		w := Wrap("", Wrap("p2", errors.New(`e`)))
-		assert.Equal(t, `p2: e`, w.ErrorWithoutStack())
+		require.Equal(t, `p2: e`, w.ErrorWithoutStack())
 	})
 
 	t.Run("p1--e", func(t *testing.T) {
 		w := Wrap("p1", Wrap("", errors.New(`e`)))
-		assert.Equal(t, `p1: e`, w.ErrorWithoutStack())
+		require.Equal(t, `p1: e`, w.ErrorWithoutStack())
 	})
 }
 
@@ -198,19 +198,19 @@ func TestErrorWrapper_Format(t *testing.T) {
 	w := Wrap("pre1", Wrap("pre2", errors.New(`"gg"`)))
 
 	got := fmt.Sprintf("%s", w)
-	assert.Equal(t, `pre1: pre2: "gg"`, got)
+	require.Equal(t, `pre1: pre2: "gg"`, got)
 
 	got = fmt.Sprintf("%q", w)
-	assert.Equal(t, `"pre1: pre2: \"gg\""`, got)
+	require.Equal(t, `"pre1: pre2: \"gg\""`, got)
 
 	got = fmt.Sprintf("%v", w)
-	assert.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
+	require.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
 
 	got = fmt.Sprintf("%+v", w)
-	assert.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
+	require.Regexp(t, `^pre1: pre2: "gg"\n--- \[.+errx_test\.go:\d+\]`, got)
 
 	got = fmt.Sprintf("%d", w)
-	assert.Equal(t, `BADFORMAT:pre1: pre2: "gg"`, got)
+	require.Equal(t, `BADFORMAT:pre1: pre2: "gg"`, got)
 }
 
 func TestPreserveRecover(t *testing.T) {
@@ -222,7 +222,7 @@ func TestPreserveRecover(t *testing.T) {
 			return
 		}()
 
-		assert.Equal(t, "", Describe(err))
+		require.Equal(t, "", Describe(err))
 	})
 
 	t.Run("stackful", func(t *testing.T) {
@@ -234,7 +234,7 @@ func TestPreserveRecover(t *testing.T) {
 			panic(fmt.Errorf("msg"))
 		}()
 
-		assert.Regexp(t, `^prefix: msg\n--- \[`, Describe(err))
+		require.Regexp(t, `^prefix: msg\n--- \[`, Describe(err))
 	})
 
 	t.Run("string", func(t *testing.T) {
@@ -246,7 +246,7 @@ func TestPreserveRecover(t *testing.T) {
 			panic("gg")
 		}()
 
-		assert.Regexp(t, `^prefix: gg\n--- \[`, Describe(err))
+		require.Regexp(t, `^prefix: gg\n--- \[`, Describe(err))
 	})
 
 	t.Run("other", func(t *testing.T) {
@@ -258,6 +258,6 @@ func TestPreserveRecover(t *testing.T) {
 			panic(99)
 		}()
 
-		assert.Regexp(t, `^prefix: 99\n--- \[`, Describe(err))
+		require.Regexp(t, `^prefix: 99\n--- \[`, Describe(err))
 	})
 }

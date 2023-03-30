@@ -4,12 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewBizError(t *testing.T) {
 	got := NewBizError(123, "msg", errors.New("cause"))
-	a := assert.New(t)
+	a := require.New(t)
 	a.NotNil(got)
 	a.Equal(123, got.Code())
 	a.Equal("cause", got.Cause().Error())
@@ -22,7 +22,7 @@ func TestNewBizError(t *testing.T) {
 
 func TestNewBizErrorWithoutStack(t *testing.T) {
 	got := NewBizErrorWithoutStack(123, "msg", errors.New("cause"))
-	a := assert.New(t)
+	a := require.New(t)
 	a.NotNil(got)
 	a.Equal(123, got.Code())
 	a.Equal("cause", got.Cause().Error())

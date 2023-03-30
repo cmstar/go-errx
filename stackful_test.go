@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetErrorStack(t *testing.T) {
@@ -33,17 +33,13 @@ func TestGetErrorStack(t *testing.T) {
 			}
 
 			rx = `\[.+stackful_test\.go:\d+\] ` + regexp.QuoteMeta("go-errx.(*caller).call")
-			if !assert.Regexp(t, rx, line) {
-				assert.Fail(t, "", "expected calls %d, got %d", calls, count)
-				return
-			}
-
+			require.Regexp(t, rx, line, "expected calls %d, got %d", calls, count)
 			count++
 		}
 
 		// 紧跟着入口函数。
 		rx = `\[.+stackful_test\.go:\d+\] go-errx\.TestGetErrorStack.*`
-		assert.Regexp(t, rx, line)
+		require.Regexp(t, rx, line)
 	}
 
 	run := func(recursiveLevel int) {
